@@ -1,63 +1,26 @@
-import datetime
+import numpy as np
 
+# Define the total population and the number of people that identify as each religion
+total_population = 7_900_000_000
+num_christians = 2_500_000_000
+num_muslims = 1_900_000_000
+num_hindus = 1_200_000_000
+num_buddhists = 535_000_000
+num_sikhs = 30_000_000
+num_jews = 14_000_000
 
-def calculate_winnings_losses(session_start_time, session_end_time, buy_in, cash_out):
-    session_duration = session_end_time - session_start_time
-    net_profit = cash_out - buy_in
-    hourly_rate = net_profit / session_duration.seconds * 3600
+# Create a NumPy array with the number of people in each religion
+religion_population = np.array(
+    [num_christians, num_muslims, num_hindus, num_buddhists, num_sikhs, num_jews])
 
-    return net_profit, hourly_rate
+# Calculate the percentage of people in each religion
+religion_percentages = religion_population / total_population * 100
 
-
-def calculate_winnings_losses_per_day(sessions):
-    winnings_losses_per_day = {}
-    for session in sessions:
-        session_start_time = datetime.datetime.strptime(
-            session['session_start_time'], '%Y-%m-%d %H:%M:%S')
-        day = session_start_time.date()
-        if day not in winnings_losses_per_day:
-            winnings_losses_per_day[day] = {
-                'net_profit': 0, 'session_count': 0}
-
-        net_profit, hourly_rate = calculate_winnings_losses(
-            session_start_time, session['session_end_time'], session['buy_in'], session['cash_out'])
-        winnings_losses_per_day[day]['net_profit'] += net_profit
-        winnings_losses_per_day[day]['session_count'] += 1
-
-    return winnings_losses_per_day
-
-
-def calculate_winnings_losses_per_month(sessions):
-    winnings_losses_per_month = {}
-    for session in sessions:
-        session_start_time = datetime.datetime.strptime(
-            session['session_start_time'], '%Y-%m-%d %H:%M:%S')
-        month = session_start_time.strftime('%Y-%m')
-        if month not in winnings_losses_per_month:
-            winnings_losses_per_month[month] = {
-                'net_profit': 0, 'session_count': 0}
-
-        net_profit, hourly_rate = calculate_winnings_losses(
-            session_start_time, session['session_end_time'], session['buy_in'], session['cash_out'])
-        winnings_losses_per_month[month]['net_profit'] += net_profit
-        winnings_losses_per_month[month]['session_count'] += 1
-
-    return winnings_losses_per_month
-
-
-def calculate_winnings_losses_per_year(sessions):
-    winnings_losses_per_year = {}
-    for session in sessions:
-        session_start_time = datetime.datetime.strptime(
-            session['session_start_time'], '%Y-%m-%d %H:%M:%S')
-        year = session_start_time.year
-        if year not in winnings_losses_per_year:
-            winnings_losses_per_year[year] = {
-                'net_profit': 0, 'session_count': 0}
-
-        net_profit, hourly_rate = calculate_winnings_losses(
-            session_start_time, session['session_end_time'], session['buy_in'], session['cash_out'])
-        winnings_losses_per_year[year]['net_profit'] += net_profit
-        winnings_losses_per_year[year]['session_count'] += 1
-
-    return winnings_losses_per_year
+# Print the results
+print("Religion Percentages:")
+print("Christians: {:.2f}%".format(religion_percentages[0]))
+print("Muslims: {:.2f}%".format(religion_percentages[1]))
+print("Hindus: {:.2f}%".format(religion_percentages[2]))
+print("Buddhists: {:.2f}%".format(religion_percentages[3]))
+print("Sikhs: {:.2f}%".format(religion_percentages[4]))
+print("Jews: {:.2f}%".format(religion_percentages[5]))
