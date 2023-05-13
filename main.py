@@ -24,8 +24,10 @@ country_population = country_religion_percentages / 100 * total_population
 num_country_religions = np.sum(country_population, axis=0)
 
 # Create a NumPy array with the number of people in each religion worldwide and in each country
-worldwide_population = np.array([num_christians, num_muslims, num_hindus, num_buddhists, num_sikhs, num_jews])
-all_religions_population = np.vstack((worldwide_population, num_country_religions))
+worldwide_population = np.array(
+    [num_christians, num_muslims, num_hindus, num_buddhists, num_sikhs, num_jews])
+all_religions_population = np.vstack(
+    (worldwide_population, num_country_religions))
 
 # Calculate the percentage of people in each religion worldwide and in each country
 all_religions_percentages = all_religions_population / total_population * 100
@@ -45,4 +47,38 @@ print("Country-Specific Religion Percentages:")
 for i in range(country_religion_percentages.shape[0]):
     print("Country {}: ".format(i+1))
     print("Christians: {:.2f}%".format(country_religion_percentages[i, 0]))
-    print("
+    print("Muslims: {:.2f}%".format(country_religion_percentages[i, 0]))
+    print("Hindus: {:.2f}%".format(country_religion_percentages[i, 0]))
+    print("Buddhists: {:.2f}%".format(country_religion_percentages[i, 0]))
+    print("Sikhs: {:.2f}%".format(country_religion_percentages[i, 0]))
+    print("Jews: {:.2f}%".format(country_religion_percentages[i, 0]))
+
+# Group the data by country, religion, and age
+grouped_data = {}
+for row in data:
+    country = row[0]
+    religion = row[1]
+    age = row[2]
+    if country not in grouped_data:
+        grouped_data[country] = {}
+    if religion not in grouped_data[country]:
+        grouped_data[country][religion] = {}
+    if age not in grouped_data[country][religion]:
+        grouped_data[country][religion][age] = 0
+    grouped_data[country][religion][age] += row[3]
+
+# Compute the number of people in each age group who identify with each religion
+for country in grouped_data:
+    for religion in grouped_data[country]:
+        total = sum(grouped_data[country][religion].values())
+        for age in grouped_data[country][religion]:
+            count = grouped_data[country][religion][age]
+            grouped_data[country][religion][age] = count / total
+
+# Print the result
+for country in grouped_data:
+    print(country)
+    for religion in grouped_data[country]:
+        print("  ", religion)
+        for age in grouped_data[country][religion]:
+            print("    ", age, ":", grouped_data[country][religion][age])
