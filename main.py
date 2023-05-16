@@ -53,6 +53,27 @@ for i in range(country_religion_percentages.shape[0]):
     print("Sikhs: {:.2f}%".format(country_religion_percentages[i, 0]))
     print("Jews: {:.2f}%".format(country_religion_percentages[i, 0]))
 
+
+# Sample data: 2D NumPy array with columns (country, religion, age, count)
+data = np.array([
+    ['Country1', 'Christians', '18-35', 100],
+    ['Country1', 'Christians', '35-55', 150],
+    ['Country1', 'Christians', '55-', 200],
+    ['Country1', 'Muslims', '18-35', 75],
+    ['Country1', 'Muslims', '35-55', 120],
+    ['Country1', 'Muslims', '55-', 180],
+    ['Country1', 'Hindus', '18-35', 75],
+    ['Country1', 'Hindus', '35-55', 120],
+    ['Country1', 'Hindus', '55-', 180],
+    ['Country1', 'Buddhists', '18-35', 75],
+    ['Country1', 'Buddhists', '35-55', 120],
+    ['Country1', 'Buddhists', '55-', 180],
+    ['Country1', 'Sikhs', '18-35', 75],
+    ['Country1', 'Sikhs', '35-55', 120],
+    ['Country1', 'Sikhs', '55-', 180],
+
+])
+
 # Group the data by country, religion, and age
 grouped_data = {}
 for row in data:
@@ -67,13 +88,13 @@ for row in data:
         grouped_data[country][religion][age] = 0
     grouped_data[country][religion][age] += row[3]
 
-# Compute the number of people in each age group who identify with each religion
+# Compute the percentage of people in each age group who identify with each religion
 for country in grouped_data:
     for religion in grouped_data[country]:
         total = sum(grouped_data[country][religion].values())
         for age in grouped_data[country][religion]:
             count = grouped_data[country][religion][age]
-            grouped_data[country][religion][age] = count / total
+            grouped_data[country][religion][age] = (count / total) * 100
 
 # Print the result
 for country in grouped_data:
@@ -81,4 +102,4 @@ for country in grouped_data:
     for religion in grouped_data[country]:
         print("  ", religion)
         for age in grouped_data[country][religion]:
-            print("    ", age, ":", grouped_data[country][religion][age])
+            print("    ", age, ":", grouped_data[country][religion][age], "%")
