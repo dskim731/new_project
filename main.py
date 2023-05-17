@@ -1,4 +1,9 @@
+import pandas as pd
 import numpy as np
+import openpyxl
+from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.drawing.image import Image
+from openpyxl.chart import BarChart, Reference
 
 # Define the total population and the number of people that identify as each religion worldwide
 total_population = 7_900_000_000
@@ -103,3 +108,43 @@ for country in grouped_data:
         print("  ", religion)
         for age in grouped_data[country][religion]:
             print("    ", age, ":", grouped_data[country][religion][age], "%")
+
+
+# Create a DataFrame from the data
+df = pd.DataFrame(data, columns=['Country', 'Religion', 'Age', 'Count'])
+
+# Group the data by country, religion, and age and calculate the mean count
+grouped_data = df.groupby(['Country', 'Religion', 'Age']).mean().reset_index()
+
+# Create an Excel writer using openpyxl
+filename = 'religion_data.xlsx'
+writer = pd.ExcelWriter(filename, engine='openpyxl')
+
+# Write the grouped data to the Excel file
+grouped_data.to_excel(writer, sheet_name='Data', index=False)
+
+# Create a workbook and get the active sheet
+workbook = writer.book
+sheet = writer.sheets['Data']
+
+# Create a bar chart
+chart = BarChart()
+chart.title = "Religion by Age Group"
+chart.x_axis_title = "Age Group"
+chart.y_axis_title = "Percentage"
+
+# Set the data range for the chart
+data_range = Reference(sheet, min_col=4, min_row=2,
+                       max_col=5, max_row=sheet.max_row)
+categories = Reference(sheet, min_col=3, min_row=3, max_row=sheet.max_row)
+chart.add_data(data_range, titles_from_data=True)
+chart.set_categories(categories)
+
+# Add the chart to the worksheet
+sheet.add_chart(chart, "F2")
+
+# Save the workbook
+writer.save()
+writer.close()
+
+print(f"Data has been exported to {filename}.")
