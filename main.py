@@ -1,150 +1,40 @@
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
-import numpy as np
-import openpyxl
-from openpyxl.utils.dataframe import dataframe_to_rows
-from openpyxl.drawing.image import Image
-from openpyxl.chart import BarChart, Reference
+import matplotlib.pyplot as plt
 
-# Define the total population and the number of people that identify as each religion worldwide
-total_population = 7_900_000_000
-num_christians = 2_500_000_000
-num_muslims = 1_900_000_000
-num_hindus = 1_200_000_000
-num_buddhists = 535_000_000
-num_sikhs = 30_000_000
-num_jews = 14_000_000
+# Set up Google Sheets API credentials
+scope = ['https://spreadsheets.google.com/feeds',
+         'https://www.googleapis.com/auth/drive']
+credentials = ServiceAccountCredentials.from_json_keyfile_name(
+    'path_to_json_file.json', scope)
 
-# Define the percentage of people in each country that identify as each religion
-# These numbers are based on estimates from various sources and may not be accurate for all countries
-country_religion_percentages = np.array([
-    [33.2, 22.5, 2.3, 6.9, 0.3, 0.1],   # China
-    [33.4, 1.8, 0.7, 0.2, 0.0, 0.1],   # United States
-    [97.0, 1.0, 0.1, 0.1, 0.0, 0.0],   # Saudi Arabia
-    [79.5, 14.4, 2.3, 1.7, 0.0, 0.1],  # India
-    [96.2, 0.4, 0.2, 0.2, 0.0, 0.0]    # Israel
-])
+# Authenticate and open the Google Sheets document
+client = gspread.authorize(credentials)
+spreadsheet = client.open('Your Google Sheet Name')
 
-# Calculate the number of people in each country that identify as each religion
-country_population = country_religion_percentages / 100 * total_population
-num_country_religions = np.sum(country_population, axis=0)
+# Select the worksheet you want to work with
+# Replace 0 with the appropriate index of your worksheet
+worksheet = spreadsheet.get_worksheet(0)
 
-# Create a NumPy array with the number of people in each religion worldwide and in each country
-worldwide_population = np.array(
-    [num_christians, num_muslims, num_hindus, num_buddhists, num_sikhs, num_jews])
-all_religions_population = np.vstack(
-    (worldwide_population, num_country_religions))
+# Retrieve the data and convert it into a Pandas DataFrame
+data = worksheet.get_all_values()
+headers = data.pop(0)
+df = pd.DataFrame(data, columns=headers)
 
-# Calculate the percentage of people in each religion worldwide and in each country
-all_religions_percentages = all_religions_population / total_population * 100
+# Manipulate the data as per your requirements
+# For example, you can filter the data based on a condition
+filtered_data = df[df['Team'] == 'New England Patriots']
 
-# Print the results for the worldwide stats
-print("Worldwide Religion Percentages:")
-print("Christians: {:.2f}%".format(all_religions_percentages[0, 0]))
-print("Muslims: {:.2f}%".format(all_religions_percentages[0, 1]))
-print("Hindus: {:.2f}%".format(all_religions_percentages[0, 2]))
-print("Buddhists: {:.2f}%".format(all_religions_percentages[0, 3]))
-print("Sikhs: {:.2f}%".format(all_religions_percentages[0, 4]))
-print("Jews: {:.2f}%".format(all_religions_percentages[0, 5]))
-print()
+# Generate a bar graph of cap space for the filtered data
+plt.figure(figsize=(10, 6))
+plt.bar(filtered_data['Team'], filtered_data['Cap Space'])
+plt.xlabel('Team')
+plt.ylabel('Cap Space')
+plt.title('NFL Team Cap Space - New England Patriots')
+plt.xticks(rotation=90)
+plt.tight_layout()
+plt.show()
 
-# Print the results for the country-specific stats
-print("Country-Specific Religion Percentages:")
-for i in range(country_religion_percentages.shape[0]):
-    print("Country {}: ".format(i+1))
-    print("Christians: {:.2f}%".format(country_religion_percentages[i, 0]))
-    print("Muslims: {:.2f}%".format(country_religion_percentages[i, 0]))
-    print("Hindus: {:.2f}%".format(country_religion_percentages[i, 0]))
-    print("Buddhists: {:.2f}%".format(country_religion_percentages[i, 0]))
-    print("Sikhs: {:.2f}%".format(country_religion_percentages[i, 0]))
-    print("Jews: {:.2f}%".format(country_religion_percentages[i, 0]))
-
-
-# Sample data: 2D NumPy array with columns (country, religion, age, count)
-data = np.array([
-    ['Country1', 'Christians', '18-35', 100],
-    ['Country1', 'Christians', '35-55', 150],
-    ['Country1', 'Christians', '55-', 200],
-    ['Country1', 'Muslims', '18-35', 75],
-    ['Country1', 'Muslims', '35-55', 120],
-    ['Country1', 'Muslims', '55-', 180],
-    ['Country1', 'Hindus', '18-35', 75],
-    ['Country1', 'Hindus', '35-55', 120],
-    ['Country1', 'Hindus', '55-', 180],
-    ['Country1', 'Buddhists', '18-35', 75],
-    ['Country1', 'Buddhists', '35-55', 120],
-    ['Country1', 'Buddhists', '55-', 180],
-    ['Country1', 'Sikhs', '18-35', 75],
-    ['Country1', 'Sikhs', '35-55', 120],
-    ['Country1', 'Sikhs', '55-', 180],
-
-])
-
-# Group the data by country, religion, and age
-grouped_data = {}
-for row in data:
-    country = row[0]
-    religion = row[1]
-    age = row[2]
-    if country not in grouped_data:
-        grouped_data[country] = {}
-    if religion not in grouped_data[country]:
-        grouped_data[country][religion] = {}
-    if age not in grouped_data[country][religion]:
-        grouped_data[country][religion][age] = 0
-    grouped_data[country][religion][age] += row[3]
-
-# Compute the percentage of people in each age group who identify with each religion
-for country in grouped_data:
-    for religion in grouped_data[country]:
-        total = sum(grouped_data[country][religion].values())
-        for age in grouped_data[country][religion]:
-            count = grouped_data[country][religion][age]
-            grouped_data[country][religion][age] = (count / total) * 100
-
-# Print the result
-for country in grouped_data:
-    print(country)
-    for religion in grouped_data[country]:
-        print("  ", religion)
-        for age in grouped_data[country][religion]:
-            print("    ", age, ":", grouped_data[country][religion][age], "%")
-
-
-# Create a DataFrame from the data
-df = pd.DataFrame(data, columns=['Country', 'Religion', 'Age', 'Count'])
-
-# Group the data by country, religion, and age and calculate the mean count
-grouped_data = df.groupby(['Country', 'Religion', 'Age']).mean().reset_index()
-
-# Create an Excel writer using openpyxl
-filename = 'religion_data.xlsx'
-writer = pd.ExcelWriter(filename, engine='openpyxl')
-
-# Write the grouped data to the Excel file
-grouped_data.to_excel(writer, sheet_name='Data', index=False)
-
-# Create a workbook and get the active sheet
-workbook = writer.book
-sheet = writer.sheets['Data']
-
-# Create a bar chart
-chart = BarChart()
-chart.title = "Religion by Age Group"
-chart.x_axis_title = "Age Group"
-chart.y_axis_title = "Percentage"
-
-# Set the data range for the chart
-data_range = Reference(sheet, min_col=4, min_row=2,
-                       max_col=5, max_row=sheet.max_row)
-categories = Reference(sheet, min_col=3, min_row=3, max_row=sheet.max_row)
-chart.add_data(data_range, titles_from_data=True)
-chart.set_categories(categories)
-
-# Add the chart to the worksheet
-sheet.add_chart(chart, "F2")
-
-# Save the workbook
-writer.save()
-writer.close()
-
-print(f"Data has been exported to {filename}.")
+# Update the Google Sheets document with the new data
+worksheet.update('A1', [headers] + df.values.tolist())
